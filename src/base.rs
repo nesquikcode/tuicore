@@ -111,6 +111,16 @@ impl Color {
         self.green = (self.green as f32 * (1.0 - opacity) + with.green as f32 * opacity) as u8;
         self.blue = (self.blue as f32 * (1.0 - opacity) + with.blue as f32 * opacity) as u8;
     }
+    fn quantize_channel(c: u8, levels: u8) -> u8 {
+        let step = 255.0 / (levels as f32 - 1.0);
+        let q = ((c as f32 / step).round() * step).round() as u8;
+        q
+    }
+    pub fn quantize(&mut self, quant: u32) {
+        self.red = Color::quantize_channel(self.red, quant as u8);
+        self.green = Color::quantize_channel(self.green, quant as u8);
+        self.blue = Color::quantize_channel(self.blue, quant as u8);
+    }
     pub fn to_bg_string(&self) -> String {
         format!("\x1b[48;2;{};{};{}m", self.red, self.green, self.blue)
     }

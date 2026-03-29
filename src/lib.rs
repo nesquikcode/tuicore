@@ -16,7 +16,7 @@ mod tests {
         use crate::base::{Color, Positions, RelPosition};
         use crate::core::{App, AppEvent, EventType};
         use crate::elements::{Label, ComposedLayer, Rectangle, Image};
-        let mut app = App::init(60);
+        let mut app = App::init(60, Some(16));
         let label = Label::new(
             format!(
                 "{}x{}", app.buffer.size.width, app.buffer.size.height).to_string(),

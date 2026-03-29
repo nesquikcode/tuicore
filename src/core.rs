@@ -58,6 +58,7 @@ pub struct PaletteCache {
 pub struct App {
     // args
     pub fps: u32,
+    pub color_quant: u32,
     pub color_mask_max: Color,
     pub color_mask_min: Color,
     pub default_color: Color,
@@ -77,6 +78,7 @@ pub struct App {
 impl App {
     pub fn new(
         fps: u32,
+        color_quant: Option<u32>,
         color_mask_max: Option<Color>,
         color_mask_min: Option<Color>,
         default_color: Option<Color>,
@@ -86,6 +88,7 @@ impl App {
         let (w, h) = size().unwrap();
         App {
             fps,
+            color_quant: color_quant.unwrap_or_else(|| 1),
             color_mask_max: color_mask_max.unwrap_or_else(Color::white),
             color_mask_min: color_mask_min.unwrap_or_else(Color::black),
             default_color: default_color.unwrap_or_else(Color::white),
@@ -101,8 +104,8 @@ impl App {
         }
     }
 
-    pub fn init(fps: u32) -> App {
-        App::new(fps, None, None, None, None, None)
+    pub fn init(fps: u32, quant: Option<u32>) -> App {
+        App::new(fps, quant, None, None, None, None, None)
     }
 
     pub fn register_event(&mut self, ev: AppEvent) {
@@ -200,8 +203,10 @@ impl App {
                 let idx = (y as usize) * (self.buffer.size.width as usize) + (x as usize);
                 let pixel = self.buffer.buffer[idx];
 
-                let fg = pixel.foreground_color.maskmax(self.color_mask_max).maskmin(self.color_mask_min);
-                let bg = pixel.background_color.maskmax(self.color_mask_max).maskmin(self.color_mask_min);
+                let mut fg = pixel.foreground_color.maskmax(self.color_mask_max).maskmin(self.color_mask_min);
+                let mut bg = pixel.background_color.maskmax(self.color_mask_max).maskmin(self.color_mask_min);
+                fg.quantize(self.color_quant);
+                bg.quantize(self.color_quant);
 
                 if lastColor != fg {
                     frame.push_str(self.get_fg_str(fg));
