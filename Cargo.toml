@@ -1,0 +1,14 @@
+[package]
+name = "tuicore"
+version = "0.1.0"
+edition = "2024"
+authors = ["nesquik@nishine.ru"]
+description = "TUIC / TUI Core - module for creating Terminal apps easily, like a terminal ui engine."
+license = "MIT"
+repository = "https://github.com/nesquikcode/tuicore"
+keywords = ["tui", "terminal", "shell", "console", "interface", "ui", "ux"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+crossterm = "0.29.0"
+image = "0.25.10"
