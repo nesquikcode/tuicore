@@ -17,53 +17,56 @@ mod tests {
         use crate::core::{App, AppEvent, EventType};
         use crate::elements::{Label, ComposedLayer, Rectangle, Image};
         let mut app = App::init(60, Some(16));
-        let label = Label::new(
-            format!(
-                "{}x{}", app.buffer.size.width, app.buffer.size.height).to_string(),
-            Positions::RelPosition(
-                RelPosition { relx: 50, rely: 50 }
-            ),
-            Some(true),
-            Some(Color::black()), Some(Color::white()),
-            None, None
-        );
         let fpsLabel = Label::new(
-            "calculating...".to_string(),
+            "Идёт подсчёт...".to_string(),
             Positions::RelPosition(
-                RelPosition { relx: 50, rely: 80 }
+                RelPosition { relx: 50, rely: 45 }
             ),
-            Some(true), None, None,
+            None, None, None,
             None, None
         );
+        let author = Label::new(
+            "Максимов Василий 9 \"б\" класс".to_string(),
+            Positions::RelPosition(
+                RelPosition { relx: 50, rely: 30 }
+            ),
+            None, None, None,
+            None, None
+        );
+        let part = Label::new(
+            "Практическая часть проекта".to_string(),
+            Positions::RelPosition(
+                RelPosition { relx: 50, rely: 35 }
+            ),
+            None, None, None,
+            None, None
+        );
+        let lang = Label::new(
+            "Язык: Rust".to_string(),
+            Positions::RelPosition(
+                RelPosition { relx: 50, rely: 40 }
+            ),
+            None, None, None,
+            None, None
+        );
+
 
         let img = Image::new(
             Positions::RelPosition(
-                RelPosition { relx: 25, rely: 0 }
+                RelPosition { relx: 5, rely: 10 }
             ),
             Sizes::RelSize(
-                RelSize { relwidth: 50, relheight: 100 }
+                RelSize { relwidth: 40, relheight: 80 }
             ),
-            "D:\\tuicore\\photo_2026-03-29_03-57-03.jpg".to_string(),
-            None
+            "D:\\tuicore\\logo.jpg".to_string(),
+            None, None
         );
 
         let redid: u32 = app.register_renderer(Box::new(img));
-        let lid: u32 = app.register_renderer(Box::new(label));
         let fpslid: u32 = app.register_renderer(Box::new(fpsLabel));
-        app.register_event(
-            AppEvent {
-                evtype: EventType::OnSizeChange,
-                exec: Box::new(move |mut renderers, mut buff, mut context| {
-                    if let Some(x) = renderers.get_mut(&lid) {
-                        let x = x.as_mut();
-
-                        if let Some(label) = x.as_any_mut().downcast_mut::<Label>() {
-                            label.change_content(format!("{}x{}", buff.size.width, buff.size.height));
-                        }
-                    }
-                })
-            }
-        );
+        let authorid: u32 = app.register_renderer(Box::new(author));
+        let partid: u32 = app.register_renderer(Box::new(part));
+        let langif: u32 = app.register_renderer(Box::new(lang));
         app.register_event(
             AppEvent {
                 evtype: EventType::PreRender,
@@ -84,7 +87,7 @@ mod tests {
                                 let x = x.as_mut();
 
                                 if let Some(label) = x.as_any_mut().downcast_mut::<Label>() {
-                                    label.change_content(format!("{} fps (ft {}s)", 1.0/t2.duration_since(*t1).as_secs_f32(), t2.duration_since(*t1).as_secs_f32()));
+                                    label.change_content(format!("Кадров в секунду: {}", (1.0/t2.duration_since(*t1).as_secs_f32()).round()));
                                 }
                             }
                         }

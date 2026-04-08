@@ -75,17 +75,19 @@ pub struct Rectangle {
     fg_color: Color,
     bg_color: Color,
     fg_opacity: f32,
-    bg_opacity: f32
+    bg_opacity: f32,
+    centered: bool
 }
 impl Rectangle {
-    pub fn new(pos: Positions, size: Sizes, bg_color: Option<Color>, fg_color: Option<Color>, fg_opacity: Option<f32>, bg_opacity: Option<f32>) -> Rectangle {
+    pub fn new(pos: Positions, size: Sizes, bg_color: Option<Color>, fg_color: Option<Color>, fg_opacity: Option<f32>, bg_opacity: Option<f32>, centered: Option<bool>) -> Rectangle {
         Rectangle {
             pos,
             size,
             fg_color: fg_color.unwrap_or_else(Color::white),
             bg_color: bg_color.unwrap_or_else(Color::black),
             fg_opacity: fg_opacity.unwrap_or_else(|| 1.0),
-            bg_opacity: bg_opacity.unwrap_or_else(|| 1.0)
+            bg_opacity: bg_opacity.unwrap_or_else(|| 1.0),
+            centered: centered.unwrap_or_else(|| false)
         }
     }
     pub fn change_pos(&mut self, pos: Positions) {self.pos = pos;}
@@ -95,8 +97,15 @@ impl Rectangle {
 }
 impl Element for Rectangle {
     fn process(&mut self, buff: &mut FrameBuffer) {
-        let pos = self.pos.calc(buff.size);
+        let mut pos = self.pos.calc(buff.size);
         let size = self.size.calc(buff.size);
+        match self.centered {
+            true => {
+                pos.x = pos.x - (size.width / 2);
+                pos.y = pos.y - (size.height / 2);
+            }
+            false => {}
+        }
         for y in 0..size.height {
             for x in 0..size.width {
                 let idx = ((pos.y + y) * buff.size.width + (pos.x + x)) as usize;
@@ -124,10 +133,11 @@ pub struct Image {
     size: Sizes,
     image: DynamicImage,
     cache: ImageCache,
-    opacity: f32
+    opacity: f32,
+    centered: bool
 }
 impl Image {
-    pub fn new(pos: Positions, size: Sizes, path: String, opacity: Option<f32>) -> Image{
+    pub fn new(pos: Positions, size: Sizes, path: String, opacity: Option<f32>, centered: Option<bool>) -> Image{
         let img = open(path).unwrap();
         let mut pixels: Vec<Pixel> = Vec::new();
         for (x, y, c) in img.pixels() {
@@ -142,7 +152,8 @@ impl Image {
             opacity: opacity.unwrap_or_else(|| 1.0),
             cache: ImageCache {
                 at_width: img.width(), at_height: img.height(), data: pixels
-            }
+            },
+            centered: centered.unwrap_or_else(|| false)
         }
     }
     pub fn get_at_size(&mut self, width: u32, height: u32) -> Vec<Pixel> {
@@ -165,9 +176,16 @@ impl Image {
 }
 impl Element for Image {
     fn process(&mut self, buff: &mut FrameBuffer) {
-        let pos = self.pos.calc(buff.size);
+        let mut pos = self.pos.calc(buff.size);
         let size = self.size.calc(buff.size);
         let pixels = self.get_at_size(size.width as u32, size.height as u32);
+        match self.centered {
+            true => {
+                pos.x = pos.x - (size.width / 2);
+                pos.y = pos.y - (size.height / 2);
+            }
+            false => {}
+        }
         for y in 0..size.height {
             for x in 0..size.width {
                 let idx = ((pos.y + y) * buff.size.width + (pos.x + x)) as usize;
@@ -189,21 +207,29 @@ impl Element for Image {
 pub struct ComposedLayer {
     renderers: Vec<Box<dyn Element>>
 }
-
+/*
 impl ComposedLayer {
-    pub fn new(renderers: Option<Vec<Box<dyn Element>>>) -> ComposedLayer {
-        ComposedLayer { renderers: renderers.unwrap_or_else(Vec::new) }
+    pub fn new() -> ComposedLayer {
+        ComposedLayer { renderers: Vec::new() }
     }
-    pub fn empty() -> ComposedLayer {ComposedLayer::new(None)}
-    pub fn append(&mut self, element: Box<dyn Element>) {self.renderers.push(element);}
+    pub fn append(&mut self, element: Box<dyn Element>) -> usize {
+        self.renderers.push(element);
+        self.renderers.len()-1
+    }
     pub fn pop(&mut self) -> Option<Box<dyn Element>> {self.renderers.pop()}
+    pub fn get_mut(&mut self, i: usize) -> Option<Box<&mut dyn Element>> {
+        self.renderers.get_mut(i)
+    }
 }
 impl Element for ComposedLayer {
     fn process(&mut self, buff: &mut FrameBuffer) {
-        for renderer in &mut self.renderers {
+        let len = self.renderers.len();
+        for i in 0..len {
+            let mut renderer = self.renderers.get_mut(i).unwrap();
             renderer.process(buff);
         }
     }
     fn as_any(&self) -> &dyn Any {self}
     fn as_any_mut(&mut self) -> &mut dyn Any {self}
 }
+*/
